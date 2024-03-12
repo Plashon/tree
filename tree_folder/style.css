@@ -1,6 +1,16 @@
 .folder, .file {
-    margin-left: 20px;
+  
+  color: rgb(0, 0, 0);
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
 }
+
+.folder,.file:hover{
+    cursor: pointer;
+}
+
+
 
 .folder::before, .file::before {
     content: '';

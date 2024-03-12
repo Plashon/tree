@@ -1,208 +1,102 @@
-const folderStructure = {
-  name: "Root",
-  type: "folder",
-  children: [
-    {
-      name: "Folder 1",
-      type: "folder",
-      children: [
-        { name: "File 1.txt", type: "file" },
-        { name: "File 2.txt", type: "file" },
-      ],
-    },
-    {
-      name: "Folder 2",
-      type: "folder",
-      children: [{ name: "File 3.txt", type: "file" }],
-    },
-  ],
-};
+//สร้างโครงสร้าง
+const folderStructure = new TreeNode("Root Folder");
+const folder1 = new TreeNode("Folder 1");
+const folder2 = new TreeNode("Folder 2");
 
-let updatedFolderStructure = folderStructure;
+const file1 = new TreeNode("File 1.txt");
+const file2 = new TreeNode("File 2.txt");
+const file3 = new TreeNode("File 3.txt");
 
-function addFile() {
-  // รับชื่อไฟล์และชื่อโฟลเดอร์จากผู้ใช้
-  const folderName = prompt("สร้างไฟล์ใหม่ในโฟลเดอร์");
-  const newFileName = prompt("ชื่อไฟล์ใหม่");
+folder1.addChild(file1);
+folder1.addChild(file2);
+folder2.addChild(file3);
 
-  // ค้นหาโฟลเดอร์เป้าหมาย
-  const targetFolder = findFolder(updatedFolderStructure, folderName);
+folderStructure.addChild(folder1);
+folderStructure.addChild(folder2);
 
-  // ตรวจสอบว่าโฟลเดอร์เป้าหมายมีอยู่
-  if (!targetFolder) {
-    console.error(`โฟลเดอร์ "${folderName}" ไม่พบ`);
-    return;
-  }
-
-  // เพิ่มไฟล์ใหม่ลงในโฟลเดอร์เป้าหมาย
-  targetFolder.children.push({ name: newFileName, type: "file" });
-
-  // อัปเดต UI
-  const folderTree = document.getElementById("folderTree");
-  const treeElement = createTreeElement(updatedFolderStructure);
-  folderTree.replaceChild(treeElement, folderTree.firstChild);
-
-  // อัปเดต folderStructure
-  folderStructure = updatedFolderStructure;
-}
-
-function addFolder() {
-  // รับชื่อโฟลเดอร์ใหม่และโฟลเดอร์เป้าหมายจากผู้ใช้
-  const parentFolderName = prompt("สร้างโฟลเดอร์ใหม่ในโฟลเดอร์");
-  const folderName = prompt("ชื่อโฟลเดอร์ใหม่");
-
-  // ค้นหาโฟลเดอร์เป้าหมาย
-  const parentFolder = findFolder(updatedFolderStructure, parentFolderName);
-
-  // ตรวจสอบว่าโฟลเดอร์เป้าหมายมีอยู่
-  if (!parentFolder) {
-    console.error(`โฟลเดอร์ "${parentFolderName}" ไม่พบ`);
-    return;
-  }
-
-  // เพิ่มโฟลเดอร์ใหม่ลงในโฟลเดอร์เป้าหมาย
-  parentFolder.children.push({ name: folderName, type: "folder" });
-
-  // อัปเดต UI
-  const folderTree = document.getElementById("folderTree");
-  const treeElement = createTreeElement(updatedFolderStructure);
-  folderTree.replaceChild(treeElement, folderTree.firstChild);
-
-  // อัปเดต folderStructure
-  folderStructure = updatedFolderStructure;
-}
-
-function createTreeElement(item) {
+//แสดงโฟล์เดอร์และไฟล์
+function createTreeElement(node, parentElement) {
   const element = document.createElement("div");
-  element.textContent = item.name;
-  element.classList.add(item.type);
+  element.textContent = node.name;
+  element.classList.add("folder");
 
-  if (item.type === "folder" && item.children) {
-    const ul = document.createElement("ul");
-    item.children.forEach((child) => {
-      const childElement = createTreeElement(child);
-      ul.appendChild(childElement);
+  element.addEventListener("click", function (event) {
+    event.stopPropagation(); // Stop event from bubbling up
+    toggleSelection(element);
+  });
+
+  if (node.children.length > 0) {
+    node.children.forEach((child) => {
+      const childElement = createTreeElement(child, element);
+      element.appendChild(childElement);
     });
-    element.appendChild(ul);
   }
 
+  parentElement.appendChild(element);
   return element;
 }
-
-// ฟังก์ชันค้นหาโฟลเดอร์
-function findFolder(folderStructure, folderName) {
-  if (folderStructure.name === folderName) {
-    return folderStructure;
+//เปลี่ยนสถานะการเลือก
+function toggleSelection(element) {
+  if (element.classList.contains("selected")) {
+    element.classList.remove("selected");
+  } else {
+    element.classList.add("selected");
+  }
+}
+//เพิ่มโฟลเดอร์
+function addFolder() {
+  const selectedElement = document.querySelector(".folder.selected");
+  if (!selectedElement) {
+    alert("Please select a folder to add a folder into.");
+    return;
   }
 
-  if (folderStructure.children.length === 0) {
-    return null;
+  const newFolderName = prompt("Enter the name of the new folder:");
+  if (!newFolderName) return; // Cancelled
+
+  const newFolder = new TreeNode(newFolderName);
+
+  const newFolderElement = createTreeElement(newFolder, selectedElement);
+  selectedElement.appendChild(newFolderElement);
+}
+//เพิ่มไฟล์
+function addFile() {
+  const selectedElement = document.querySelector(".folder.selected");
+  if (!selectedElement) {
+    alert("Please select a folder to add a file into.");
+    return;
   }
 
-  for (const child of folderStructure.children) {
-    const foundFolder = findFolder(child, folderName);
-    if (foundFolder) {
-      return foundFolder;
-    }
+  const newFileName = prompt("Enter the name of the new file:");
+  if (!newFileName) return; // Cancelled
+
+  const newFileNode = new TreeNode(newFileName);
+
+  const newFileElement = createTreeElement(newFileNode, selectedElement);
+  selectedElement.appendChild(newFileElement);
+}
+//ลบโฟลฺเดอร์หรือไฟล์
+function deleteSelected() {
+  const selectedElements = document.querySelectorAll(".selected");
+  if (selectedElements.length === 0) {
+    alert("Please select an item to delete.");
+    return;
   }
 
-  return null;
+  selectedElements.forEach((element) => {
+    element.parentNode.removeChild(element);
+  });
 }
 
-// เริ่มต้น
 const folderTree = document.getElementById("folderTree");
-const treeElement = createTreeElement(updatedFolderStructure);
+const treeElement = createTreeElement(folderStructure, folderTree);
 folderTree.appendChild(treeElement);
 
-function deleteFile() {
-  // รับชื่อไฟล์และชื่อโฟลเดอร์จากผู้ใช้
-  const folderName = prompt("ลบไฟล์จากโฟลเดอร์");
-  const fileName = prompt("ชื่อไฟล์ที่ต้องการลบ");
+document.getElementById("addFolderButton").addEventListener("click", addFolder);
+document.getElementById("addFileButton").addEventListener("click", addFile);
+document
+  .getElementById("deleteButton")
+  .addEventListener("click", deleteSelected);
 
-  // ค้นหาโฟลเดอร์เป้าหมาย
-  const targetFolder = findFolder(updatedFolderStructure, folderName);
 
-  // ตรวจสอบว่าโฟลเดอร์เป้าหมายมีอยู่
-  if (!targetFolder) {
-    console.error(`โฟลเดอร์ "${folderName}" ไม่พบ`);
-    return;
-  }
 
-  // ค้นหาไฟล์ที่ต้องการลบ
-  const fileIndex = targetFolder.children.findIndex(
-    (item) => item.name === fileName && item.type === "file"
-  );
-
-  // ตรวจสอบว่าไฟล์มีอยู่
-  if (fileIndex === -1) {
-    console.error(`ไฟล์ "${fileName}" ไม่พบในโฟลเดอร์ "${folderName}"`);
-    return;
-  }
-
-  // ลบไฟล์ออกจากโฟลเดอร์
-  targetFolder.children.splice(fileIndex, 1);
-
-  // อัปเดต UI
-  const folderTree = document.getElementById("folderTree");
-  const treeElement = createTreeElement(updatedFolderStructure);
-  folderTree.replaceChild(treeElement, folderTree.firstChild);
-
-  // อัปเดต folderStructure
-  folderStructure = updatedFolderStructure;
-}
-function deleteFolder() {
-  // รับชื่อโฟลเดอร์จากผู้ใช้
-  const folderName = prompt("ชื่อโฟลเดอร์ที่ต้องการลบ");
-
-  // ค้นหาโฟลเดอร์เป้าหมาย
-  const targetFolder = findFolder(updatedFolderStructure, folderName);
-
-  // ตรวจสอบว่าโฟลเดอร์เป้าหมายมีอยู่
-  if (!targetFolder) {
-    console.error(`โฟลเดอร์ "${folderName}" ไม่พบ`);
-    return;
-  }
-
-  // ตรวจสอบว่าโฟลเดอร์ว่างเปล่า
-  if (targetFolder.children.length > 0) {
-    console.error(`โฟลเดอร์ "${folderName}" มีไฟล์อยู่`);
-    prompt(`โฟลเดอร์ "${folderName}" มีไฟล์อยู่`);
-    return;
-  }
-
-  // ค้นหาโฟลเดอร์ที่เป็น Parent
-  const parentFolder = findParentFolder(updatedFolderStructure, targetFolder);
-
-  // ลบโฟลเดอร์ออกจากโฟลเดอร์ Parent
-  parentFolder.children.splice(
-    parentFolder.children.findIndex((item) => item === targetFolder),
-    1
-  );
-
-  // อัปเดต UI
-  const folderTree = document.getElementById("folderTree");
-  const treeElement = createTreeElement(updatedFolderStructure);
-  folderTree.replaceChild(treeElement, folderTree.firstChild);
-
-  // อัปเดต folderStructure
-  folderStructure = updatedFolderStructure;
-}
-
-function findParentFolder(folderStructure, targetFolder) {
-  if (folderStructure.children.includes(targetFolder)) {
-    return folderStructure;
-  }
-
-  if (folderStructure.children.length === 0) {
-    return null;
-  }
-
-  for (const child of folderStructure.children) {
-    const foundFolder = findParentFolder(child, targetFolder);
-    if (foundFolder) {
-      return foundFolder;
-    }
-  }
-
-  return null;
-}

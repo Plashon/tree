@@ -6,11 +6,131 @@
   </head>
   <body>
     <div id="folderTree"></div>
-    <button onclick="addFile()">newfile</button>
-    <button onclick="addFolder()">newfolder</button>
-    <button onclick="deleteFile()">deleteFile</button>
-    <button onclick="deleteFolder()">deletefolder</button>
 
+    <button id="addFolderButton">Add Folder</button>
+    <button id="addFileButton">Add File</button>
+    <button id="deleteButton">Delete</button>
+
+    <script>
+      //กำหนดโครงสร้าง
+      const folderStructure = {
+        name: "Root",
+        type: "folder",
+        children: [
+          {
+            name: "Folder 1",
+            type: "folder",
+            children: [
+              { name: "File 1.txt", type: "file" },
+              { name: "File 2.txt", type: "file" },
+            ],
+          },
+          {
+            name: "Folder 2",
+            type: "folder",
+            children: [{ name: "File 3.txt", type: "file" }],
+          },
+        ],
+      };
+      //เเสดงโฟล์เดอรืและไฟล์
+      function createTreeElement(item, parentElement) {
+        const element = document.createElement("div");
+        element.textContent = item.name;
+        element.classList.add(item.type);
+
+        element.addEventListener("click", function (event) {
+          event.stopPropagation(); // Stop event from bubbling up
+          toggleSelection(element);
+        });
+
+        if (item.type === "folder" && item.children) {
+          item.children.forEach((child) => {
+            const childElement = createTreeElement(child, element);
+            element.appendChild(childElement);
+          });
+        }
+
+        parentElement.appendChild(element);
+        return element;
+      }
+      //สลับการเลือก
+      function toggleSelection(element) {
+        if (element.classList.contains("selected")) {
+          element.classList.remove("selected");
+        } else {
+          element.classList.add("selected");
+        }
+      }
+      //เพิ่มโฟล์เดอร์ใหม่โดยป้อนชื่อได้
+      function addFolder() {
+        const selectedElement = document.querySelector(".folder.selected");
+        if (!selectedElement) {
+          alert("Please select a folder to add a folder into.");
+          return;
+        }
+
+        const newFolder = {
+          name: "Folder 3",
+          type: "folder",
+          children: [],
+        };
+
+        const newFolderElement = createTreeElement(newFolder, selectedElement);
+        selectedElement.appendChild(newFolderElement);
+        const folder3Element = createTreeElement(folder3, newFolderElement);
+        newFolderElement.appendChild(folder3Element);
+      }
+      //เพิ่มไฟล์ใหม่โดยป้อนชื่อได้
+      function addFile() {
+        const selectedElement = document.querySelector(".folder.selected");
+        if (!selectedElement) {
+          alert("Please select a folder to add a file into.");
+          return;
+        }
+
+        const newFile = {
+          name: "New File.txt",
+          type: "file",
+        };
+
+        const newFileElement = createTreeElement(newFile, selectedElement);
+        selectedElement.appendChild(newFileElement);
+      }
+      //ลบโฟลืเดอร์ที่ถูกเลือก
+      function deleteSelected() {
+        const selectedElements = document.querySelectorAll(".selected");
+        if (selectedElements.length === 0) {
+          alert("Please select an item to delete.");
+          return;
+        }
+
+        selectedElements.forEach((element) => {
+          element.parentNode.removeChild(element);
+        });
+      }
+
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Delete" || event.keyCode === 46) {
+          deleteSelected();
+        }
+      });
+
+      const folderTree = document.getElementById("folderTree");
+      const treeElement = createTreeElement(folderStructure, folderTree);
+      folderTree.appendChild(treeElement);
+
+      document
+        .getElementById("addFolderButton")
+        .addEventListener("click", addFolder);
+      document
+        .getElementById("addFileButton")
+        .addEventListener("click", addFile);
+      document
+        .getElementById("deleteButton")
+        .addEventListener("click", deleteSelected);
+    </script>
+
+    <script src="treeNode.js"></script>
     <script src="script.js"></script>
   </body>
 </html>
